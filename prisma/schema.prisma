@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id                      String   @id @default(uuid())
+  userId                  String   @unique
+  email                   String   @unique
+  name                    String
+  isPro                   Boolean
+  proSince                Int?
+  // lemonSqueezyCustomerId  String?
+  // lemonSqueezyOrderId     String?
+
+  codeExecutions          CodeExecution[]
+  snippets                Snippet[]
+  snippetComments         SnippetComment[]
+  stars                   Star[]
+}
+
+model CodeExecution {
+  id        String  @id @default(uuid())
+  userId    String
+  language  String
+  code      String
+  output    String?
+  error     String?
+
+  user      User    @relation(fields: [userId], references: [userId])
+
+  @@index([userId])
+}
+
+model Snippet {
+  id        String           @id @default(uuid())
+  userId    String
+  title     String
+  language  String
+  code      String
+  userName  String
+
+  user              User              @relation(fields: [userId], references: [userId])
+  snippetComments   SnippetComment[]
+  stars             Star[]
+
+  @@index([userId])
+}
+
+model SnippetComment {
+  id         String   @id @default(uuid())
+  snippetId  String
+  userId     String
+  userName   String
+  content    String
+
+  snippet    Snippet  @relation(fields: [snippetId], references: [id])
+  user       User     @relation(fields: [userId], references: [userId])
+
+  @@index([snippetId])
+}
+
+model Star {
+  id         String   @id @default(uuid())
+  userId     String
+  snippetId  String
+
+  user       User     @relation(fields: [userId], references: [userId])
+  snippet    Snippet  @relation(fields: [snippetId], references: [id])
+
+  @@unique([userId, snippetId])
+  @@index([userId])
+  @@index([snippetId])
+}
